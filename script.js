@@ -1,6 +1,6 @@
 function getMarketSession() {
     const now = new Date();
-    const hours = now.getUTCHours() + 8; // Malaysia time is UTC+8
+    const hours = (now.getUTCHours() + 8) % 24; // Malaysia time is UTC+8
     const minutes = now.getUTCMinutes();
     const seconds = now.getUTCSeconds();
 
@@ -14,78 +14,64 @@ function getMarketSession() {
 
     let session = "";
     let nextSession = "";
+    let nextSessionTime = new Date(now); // Initialize with the current date and time
     let nextSessionOpeningTime = "";
-    let remainingHours = 0;
-    let remainingMinutes = 0;
-    let remainingSeconds = 0;
 
     // Determine AM/PM
     let period = hours >= 12 ? 'PM' : 'AM';
     let hours12 = hours % 12;
     hours12 = hours12 ? hours12 : 12; // Handle 12 AM/PM case
 
-    // Market sessions in UTC+8 (Malaysia time)
+    // Determine current session and next session with exact next session time
     if (hours >= 8 && hours < 16) {
         // Asia Session (8 AM - 4 PM)
         session = "Asia Session";
         nextSession = "London";
+
+        // Set next session time to 4 PM
+        nextSessionTime.setUTCHours(16 - 8); // Convert to UTC
+        nextSessionTime.setUTCMinutes(0);
+        nextSessionTime.setUTCSeconds(0);
+
         nextSessionOpeningTime = "04:00 PM";
-
-        // Calculate time until London session at 4 PM
-        remainingHours = 15 - hours;
-        remainingMinutes = (60 - minutes) % 60;
-        remainingSeconds = (60 - seconds) % 60;
-
-        if (minutes === 0 && seconds === 0) remainingHours++;
     } else if (hours >= 16 && hours < 21) {
         // London Session (4 PM - 9 PM)
         session = "London Session";
         nextSession = "New York";
+
+        // Set next session time to 9 PM
+        nextSessionTime.setUTCHours(21 - 8); // Convert to UTC
+        nextSessionTime.setUTCMinutes(0);
+        nextSessionTime.setUTCSeconds(0);
+
         nextSessionOpeningTime = "09:00 PM";
-
-        // Calculate time until New York session at 9 PM
-        remainingHours = 20 - hours;
-        remainingMinutes = (60 - minutes) % 60;
-        remainingSeconds = (60 - seconds) % 60;
-
-        if (minutes === 0 && seconds === 0) remainingHours++;
-    } else if (hours >= 21 || hours < 6) {
+    } else {
         // New York Session (9 PM - 6 AM)
         session = "New York Session";
         nextSession = "Asia";
+
+        // Set next session time to 8 AM the following day
+        nextSessionTime.setUTCDate(nextSessionTime.getUTCDate() + 1); // Move to next day
+        nextSessionTime.setUTCHours(8 - 8); // Convert to UTC
+        nextSessionTime.setUTCMinutes(0);
+        nextSessionTime.setUTCSeconds(0);
+
         nextSessionOpeningTime = "08:00 AM";
-
-        // Calculate time until Asia session at 8 AM
-        if (hours >= 21) {
-            remainingHours = (7 + 24 - hours) % 24;
-        } else {
-            remainingHours = 7 - hours;
-        }
-        remainingMinutes = (60 - minutes) % 60;
-        remainingSeconds = (60 - seconds) % 60;
-
-        if (minutes === 0 && seconds === 0) remainingHours++;
-    } else {
-        // Pre-Asia Gap (6 AM - 8 AM)
-        session = "Waiting for Asia Session";
-        nextSession = "Asia";
-        nextSessionOpeningTime = "08:00 AM";
-
-        // Calculate time until Asia session at 8 AM
-        remainingHours = 7 - hours;
-        remainingMinutes = (60 - minutes) % 60;
-        remainingSeconds = (60 - seconds) % 60;
-
-        if (minutes === 0 && seconds === 0) remainingHours++;
     }
+
+    // Calculate the countdown to the next session
+    const timeDifference = nextSessionTime - now;
+    const countdownHours = Math.floor(timeDifference / (1000 * 60 * 60));
+    const countdownMinutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+    const countdownSeconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
     return {
         session,
         nextSession,
+        countdownHours,
+        countdownMinutes,
+        countdownSeconds,
         nextSessionOpeningTime,
-        remainingHours,
-        remainingMinutes,
-        remainingSeconds,
         hours12,
         minutes,
         seconds,
@@ -98,10 +84,10 @@ function updateClock() {
     const {
         session,
         nextSession,
+        countdownHours,
+        countdownMinutes,
+        countdownSeconds,
         nextSessionOpeningTime,
-        remainingHours,
-        remainingMinutes,
-        remainingSeconds,
         hours12,
         minutes,
         seconds,
@@ -110,7 +96,7 @@ function updateClock() {
     } = getMarketSession();
 
     const timeString = `${hours12}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds} ${period}`;
-    const nextSessionString = `${nextSession} (${nextSessionOpeningTime}) in ${remainingHours}h ${remainingMinutes}m ${remainingSeconds}s`;
+    const nextSessionString = `${nextSession} (${nextSessionOpeningTime}) in ${countdownHours}h ${countdownMinutes}m ${countdownSeconds}s`;
 
     // Set the date and time
     document.getElementById("date").textContent = formattedDate;
