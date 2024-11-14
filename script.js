@@ -32,11 +32,11 @@ function getMarketSession() {
         nextSessionOpeningTime = "04:00 PM";
 
         // Calculate time until London session at 4 PM
-        remainingHours = 15 - hours; // Subtract 1 extra hour to correct calculation
+        remainingHours = 15 - hours;
         remainingMinutes = (60 - minutes) % 60;
         remainingSeconds = (60 - seconds) % 60;
 
-        if (minutes === 0 && seconds === 0) remainingHours++; // Adjust for exact hours
+        if (minutes === 0 && seconds === 0) remainingHours++;
     } else if (hours >= 16 && hours < 21) {
         // London Session (4 PM - 9 PM)
         session = "London Session";
@@ -44,12 +44,12 @@ function getMarketSession() {
         nextSessionOpeningTime = "09:00 PM";
 
         // Calculate time until New York session at 9 PM
-        remainingHours = 20 - hours; // Subtract 1 hour as before
+        remainingHours = 20 - hours;
         remainingMinutes = (60 - minutes) % 60;
         remainingSeconds = (60 - seconds) % 60;
 
         if (minutes === 0 && seconds === 0) remainingHours++;
-    } else {
+    } else if (hours >= 21 || hours < 6) {
         // New York Session (9 PM - 6 AM)
         session = "New York Session";
         nextSession = "Asia";
@@ -57,10 +57,22 @@ function getMarketSession() {
 
         // Calculate time until Asia session at 8 AM
         if (hours >= 21) {
-            remainingHours = (7 + 24 - hours) % 24; // Wrap around midnight
+            remainingHours = (7 + 24 - hours) % 24;
         } else {
             remainingHours = 7 - hours;
         }
+        remainingMinutes = (60 - minutes) % 60;
+        remainingSeconds = (60 - seconds) % 60;
+
+        if (minutes === 0 && seconds === 0) remainingHours++;
+    } else {
+        // Pre-Asia Gap (6 AM - 8 AM)
+        session = "Waiting for Asia Session";
+        nextSession = "Asia";
+        nextSessionOpeningTime = "08:00 AM";
+
+        // Calculate time until Asia session at 8 AM
+        remainingHours = 7 - hours;
         remainingMinutes = (60 - minutes) % 60;
         remainingSeconds = (60 - seconds) % 60;
 
