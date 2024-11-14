@@ -14,51 +14,66 @@ function getMarketSession() {
 
     let session = "";
     let nextSession = "";
-    let nextSessionTime = 0;
-    let nextSessionHours = 0;
-    let nextSessionMinutes = 0;
-    let nextSessionSeconds = 0;
     let nextSessionOpeningTime = "";
+    let remainingHours = 0;
+    let remainingMinutes = 0;
+    let remainingSeconds = 0;
 
     // Determine AM/PM
     let period = hours >= 12 ? 'PM' : 'AM';
     let hours12 = hours % 12;
     hours12 = hours12 ? hours12 : 12; // Handle 12 AM/PM case
 
-    // New York (9 PM - 6 AM UTC+8)
-    if (hours >= 21 || hours < 6) {
+    // Market sessions in UTC+8 (Malaysia time)
+    if (hours >= 8 && hours < 16) {
+        // Asia Session (8 AM - 4 PM)
+        session = "Asia Session";
+        nextSession = "London";
+        nextSessionOpeningTime = "04:00 PM";
+
+        // Calculate time until London session at 4 PM
+        remainingHours = 15 - hours; // Subtract 1 extra hour to correct calculation
+        remainingMinutes = (60 - minutes) % 60;
+        remainingSeconds = (60 - seconds) % 60;
+
+        if (minutes === 0 && seconds === 0) remainingHours++; // Adjust for exact hours
+    } else if (hours >= 16 && hours < 21) {
+        // London Session (4 PM - 9 PM)
+        session = "London Session";
+        nextSession = "New York";
+        nextSessionOpeningTime = "09:00 PM";
+
+        // Calculate time until New York session at 9 PM
+        remainingHours = 20 - hours; // Subtract 1 hour as before
+        remainingMinutes = (60 - minutes) % 60;
+        remainingSeconds = (60 - seconds) % 60;
+
+        if (minutes === 0 && seconds === 0) remainingHours++;
+    } else {
+        // New York Session (9 PM - 6 AM)
         session = "New York Session";
-        nextSession = "Asia"; // Replaced Tokyo with Asia
+        nextSession = "Asia";
+        nextSessionOpeningTime = "08:00 AM";
 
-        let timeUntilAsia = 0;
-        let timeUntilAsiaMinutes = 0;
-        let timeUntilAsiaSeconds = 0;
-
+        // Calculate time until Asia session at 8 AM
         if (hours >= 21) {
-            timeUntilAsia = (7 - hours + 24) % 24; // Time until 8 AM (next day)
+            remainingHours = (7 + 24 - hours) % 24; // Wrap around midnight
         } else {
-            timeUntilAsia = (7 - hours) % 24; // Time until 8 AM (same day)
+            remainingHours = 7 - hours;
         }
+        remainingMinutes = (60 - minutes) % 60;
+        remainingSeconds = (60 - seconds) % 60;
 
-        // Calculate the remaining minutes and seconds
-        timeUntilAsiaMinutes = (60 - minutes) % 60;  // Remaining minutes to the next session
-        timeUntilAsiaSeconds = (60 - seconds) % 60; // Remaining seconds to the next session
-
-        nextSessionTime = timeUntilAsia;
-        nextSessionHours = timeUntilAsia;
-        nextSessionMinutes = timeUntilAsiaMinutes;
-        nextSessionSeconds = timeUntilAsiaSeconds;
-        nextSessionOpeningTime = "08:00 AM"; // Asia opens at 8 AM UTC+8
+        if (minutes === 0 && seconds === 0) remainingHours++;
     }
 
     return {
         session,
         nextSession,
-        nextSessionTime,
-        nextSessionHours,
-        nextSessionMinutes,
-        nextSessionSeconds,
         nextSessionOpeningTime,
+        remainingHours,
+        remainingMinutes,
+        remainingSeconds,
         hours12,
         minutes,
         seconds,
@@ -71,11 +86,10 @@ function updateClock() {
     const {
         session,
         nextSession,
-        nextSessionTime,
-        nextSessionHours,
-        nextSessionMinutes,
-        nextSessionSeconds,
         nextSessionOpeningTime,
+        remainingHours,
+        remainingMinutes,
+        remainingSeconds,
         hours12,
         minutes,
         seconds,
@@ -84,7 +98,7 @@ function updateClock() {
     } = getMarketSession();
 
     const timeString = `${hours12}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds} ${period}`;
-    const nextSessionString = `${nextSession} (${nextSessionOpeningTime}) in ${nextSessionHours}h ${nextSessionMinutes}m ${nextSessionSeconds}s`;
+    const nextSessionString = `${nextSession} (${nextSessionOpeningTime}) in ${remainingHours}h ${remainingMinutes}m ${remainingSeconds}s`;
 
     // Set the date and time
     document.getElementById("date").textContent = formattedDate;
