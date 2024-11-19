@@ -4,7 +4,7 @@ function getMarketSession() {
     const minutes = now.getUTCMinutes();
     const seconds = now.getUTCSeconds();
 
-    // Get the current date in the desired format (Day, DD Nov)
+    // Get the current date in the desired format
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const monthsOfYear = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const day = daysOfWeek[now.getDay()];
@@ -28,45 +28,37 @@ function getMarketSession() {
         session = "Asia Session";
         nextSession = "London";
 
-        // Set next session time to 4 PM
         nextSessionTime.setUTCHours(16 - 8); // Convert to UTC
         nextSessionTime.setUTCMinutes(0);
         nextSessionTime.setUTCSeconds(0);
-
         nextSessionOpeningTime = "04:00 PM";
     } else if (hours >= 16 && hours < 21) {
         // London Session (4 PM - 9 PM)
         session = "London Session";
         nextSession = "New York";
 
-        // Set next session time to 9 PM
         nextSessionTime.setUTCHours(21 - 8); // Convert to UTC
         nextSessionTime.setUTCMinutes(0);
         nextSessionTime.setUTCSeconds(0);
-
         nextSessionOpeningTime = "09:00 PM";
     } else if (hours >= 5 && hours < 8) {
         // Waiting for Asia (5 AM - 8 AM)
         session = "Waiting for Asia";
         nextSession = "Asia";
 
-        // Set next session time to 8 AM
         nextSessionTime.setUTCHours(8 - 8); // Convert to UTC
         nextSessionTime.setUTCMinutes(0);
         nextSessionTime.setUTCSeconds(0);
-
         nextSessionOpeningTime = "08:00 AM";
     } else {
         // New York Session (9 PM - 5 AM)
         session = "New York Session";
         nextSession = "Waiting for Asia";
 
-        // Set next session time to 5 AM the following day
         nextSessionTime.setUTCDate(nextSessionTime.getUTCDate() + (hours < 5 ? 0 : 1)); // Adjust for crossing midnight
         nextSessionTime.setUTCHours(5 - 8); // Convert to UTC
         nextSessionTime.setUTCMinutes(0);
         nextSessionTime.setUTCSeconds(0);
-
         nextSessionOpeningTime = "05:00 AM";
     }
 
