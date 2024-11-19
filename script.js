@@ -45,18 +45,29 @@ function getMarketSession() {
         nextSessionTime.setUTCSeconds(0);
 
         nextSessionOpeningTime = "09:00 PM";
-    } else {
-        // New York Session (9 PM - 6 AM)
-        session = "New York Session";
+    } else if (hours >= 5 && hours < 8) {
+        // Waiting for Asia (5 AM - 8 AM)
+        session = "Waiting for Asia";
         nextSession = "Asia";
 
-        // Set next session time to 8 AM the following day
-        nextSessionTime.setUTCDate(nextSessionTime.getUTCDate() + 1); // Move to next day
+        // Set next session time to 8 AM
         nextSessionTime.setUTCHours(8 - 8); // Convert to UTC
         nextSessionTime.setUTCMinutes(0);
         nextSessionTime.setUTCSeconds(0);
 
         nextSessionOpeningTime = "08:00 AM";
+    } else {
+        // New York Session (9 PM - 5 AM)
+        session = "New York Session";
+        nextSession = "Waiting for Asia";
+
+        // Set next session time to 5 AM the following day
+        nextSessionTime.setUTCDate(nextSessionTime.getUTCDate() + (hours < 5 ? 0 : 1)); // Adjust for crossing midnight
+        nextSessionTime.setUTCHours(5 - 8); // Convert to UTC
+        nextSessionTime.setUTCMinutes(0);
+        nextSessionTime.setUTCSeconds(0);
+
+        nextSessionOpeningTime = "05:00 AM";
     }
 
     // Calculate the countdown to the next session
