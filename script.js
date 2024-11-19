@@ -1,6 +1,6 @@
 function getMarketSession() {
     const now = new Date();
-    const hours = (now.getUTCHours() + 8) % 24; // Malaysia time is UTC+8
+    const hours = (now.getUTCHours() + 8) % 24; // Convert to Malaysia time (UTC+8)
     const minutes = now.getUTCMinutes();
     const seconds = now.getUTCSeconds();
 
@@ -28,37 +28,41 @@ function getMarketSession() {
         session = "Asia Session";
         nextSession = "London";
 
-        nextSessionTime.setUTCHours(16 - 8); // Convert to UTC
-        nextSessionTime.setUTCMinutes(0);
-        nextSessionTime.setUTCSeconds(0);
+        nextSessionTime.setHours(16); // Local time (4 PM)
+        nextSessionTime.setMinutes(0);
+        nextSessionTime.setSeconds(0);
         nextSessionOpeningTime = "04:00 PM";
     } else if (hours >= 16 && hours < 21) {
         // London Session (4 PM - 9 PM)
         session = "London Session";
         nextSession = "New York";
 
-        nextSessionTime.setUTCHours(21 - 8); // Convert to UTC
-        nextSessionTime.setUTCMinutes(0);
-        nextSessionTime.setUTCSeconds(0);
+        nextSessionTime.setHours(21); // Local time (9 PM)
+        nextSessionTime.setMinutes(0);
+        nextSessionTime.setSeconds(0);
         nextSessionOpeningTime = "09:00 PM";
     } else if (hours >= 5 && hours < 8) {
         // Waiting for Asia (5 AM - 8 AM)
         session = "Waiting for Asia";
         nextSession = "Asia";
 
-        nextSessionTime.setUTCHours(8 - 8); // Convert to UTC
-        nextSessionTime.setUTCMinutes(0);
-        nextSessionTime.setUTCSeconds(0);
+        nextSessionTime.setHours(8); // Local time (8 AM)
+        nextSessionTime.setMinutes(0);
+        nextSessionTime.setSeconds(0);
         nextSessionOpeningTime = "08:00 AM";
     } else {
         // New York Session (9 PM - 5 AM)
         session = "New York Session";
         nextSession = "Waiting for Asia";
 
-        nextSessionTime.setUTCDate(nextSessionTime.getUTCDate() + (hours < 5 ? 0 : 1)); // Adjust for crossing midnight
-        nextSessionTime.setUTCHours(5 - 8); // Convert to UTC
-        nextSessionTime.setUTCMinutes(0);
-        nextSessionTime.setUTCSeconds(0);
+        if (hours < 5) {
+            nextSessionTime.setHours(5); // Local time (5 AM same day)
+        } else {
+            nextSessionTime.setDate(nextSessionTime.getDate() + 1); // Move to next day
+            nextSessionTime.setHours(5); // Local time (5 AM next day)
+        }
+        nextSessionTime.setMinutes(0);
+        nextSessionTime.setSeconds(0);
         nextSessionOpeningTime = "05:00 AM";
     }
 
