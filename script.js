@@ -15,55 +15,50 @@ function getMarketSession() {
     let session = "";
     let nextSession = "";
     let nextSessionTime = new Date(now); // Initialize with the current date and time
-    let nextSessionOpeningTime = "";
 
-    // Determine AM/PM
-    let period = hours >= 12 ? 'PM' : 'AM';
-    let hours12 = hours % 12;
-    hours12 = hours12 ? hours12 : 12; // Handle 12 AM/PM case
+    // Check if it's the weekend
+    const isWeekend = now.getDay() === 6 || now.getDay() === 0; // Saturday or Sunday
 
-    // Determine current session and next session with exact next session time
-    if (hours >= 8 && hours < 16) {
-        // Asia Session (8 AM - 4 PM)
-        session = "Asia Session";
-        nextSession = "London";
+    if (isWeekend) {
+        session = "FX Market Closed";
 
-        nextSessionTime.setHours(16); // Local time (4 PM)
+        // Calculate next Asia session opening time on Monday
+        nextSession = "Asia Session";
+        const daysUntilMonday = now.getDay() === 6 ? 2 : 1; // If Saturday, add 2; if Sunday, add 1
+        nextSessionTime.setDate(nextSessionTime.getDate() + daysUntilMonday);
+        nextSessionTime.setHours(8); // 8:00 AM Monday (Asia session opens)
         nextSessionTime.setMinutes(0);
         nextSessionTime.setSeconds(0);
-        nextSessionOpeningTime = "04:00 PM";
-    } else if (hours >= 16 && hours < 21) {
-        // London Session (4 PM - 9 PM)
-        session = "London Session";
-        nextSession = "New York";
-
-        nextSessionTime.setHours(21); // Local time (9 PM)
-        nextSessionTime.setMinutes(0);
-        nextSessionTime.setSeconds(0);
-        nextSessionOpeningTime = "09:00 PM";
-    } else if (hours >= 5 && hours < 8) {
-        // Waiting for Asia (5 AM - 8 AM)
-        session = "Waiting for Asia";
-        nextSession = "Asia";
-
-        nextSessionTime.setHours(8); // Local time (8 AM)
-        nextSessionTime.setMinutes(0);
-        nextSessionTime.setSeconds(0);
-        nextSessionOpeningTime = "08:00 AM";
     } else {
-        // New York Session (9 PM - 5 AM)
-        session = "New York Session";
-        nextSession = "Waiting for Asia";
-
-        if (hours < 5) {
-            nextSessionTime.setHours(5); // Local time (5 AM same day)
+        // Normal Forex market logic
+        if (hours >= 8 && hours < 16) {
+            // Asia Session (8 AM - 4 PM)
+            session = "Asia Session";
+            nextSession = "London Session";
+            nextSessionTime.setHours(16); // Local time (4 PM)
+        } else if (hours >= 16 && hours < 21) {
+            // London Session (4 PM - 9 PM)
+            session = "London Session";
+            nextSession = "New York Session";
+            nextSessionTime.setHours(21); // Local time (9 PM)
+        } else if (hours >= 21 || hours < 5) {
+            // New York Session (9 PM - 5 AM)
+            session = "New York Session";
+            nextSession = "Asia Session";
+            if (hours < 5) {
+                nextSessionTime.setHours(5); // Local time (5 AM same day)
+            } else {
+                nextSessionTime.setDate(nextSessionTime.getDate() + 1); // Move to next day
+                nextSessionTime.setHours(5); // Local time (5 AM next day)
+            }
         } else {
-            nextSessionTime.setDate(nextSessionTime.getDate() + 1); // Move to next day
-            nextSessionTime.setHours(5); // Local time (5 AM next day)
+            // Pre-market waiting for Asia Session (5 AM - 8 AM)
+            session = "Waiting for Asia";
+            nextSession = "Asia Session";
+            nextSessionTime.setHours(8); // Local time (8 AM)
         }
         nextSessionTime.setMinutes(0);
         nextSessionTime.setSeconds(0);
-        nextSessionOpeningTime = "05:00 AM";
     }
 
     // Calculate the countdown to the next session
@@ -78,11 +73,6 @@ function getMarketSession() {
         countdownHours,
         countdownMinutes,
         countdownSeconds,
-        nextSessionOpeningTime,
-        hours12,
-        minutes,
-        seconds,
-        period,
         formattedDate,
     };
 }
@@ -90,22 +80,16 @@ function getMarketSession() {
 function updateClock() {
     const {
         session,
-        nextSession,
         countdownHours,
         countdownMinutes,
         countdownSeconds,
-        nextSessionOpeningTime,
-        hours12,
-        minutes,
-        seconds,
-        period,
         formattedDate
     } = getMarketSession();
 
-    const timeString = `${hours12}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds} ${period}`;
-    const nextSessionString = `${nextSession} (${nextSessionOpeningTime}) in ${countdownHours}h ${countdownMinutes}m ${countdownSeconds}s`;
+    const timeString = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const nextSessionString = `Asia Session opens in ${countdownHours}h ${countdownMinutes}m ${countdownSeconds}s`;
 
-    // Set the date and time
+    // Update DOM elements
     document.getElementById("date").textContent = formattedDate;
     document.getElementById("time").textContent = timeString;
     document.getElementById("session").textContent = session;
