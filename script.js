@@ -80,6 +80,7 @@ function getMarketSession() {
 function updateClock() {
     const {
         session,
+        nextSession,
         countdownHours,
         countdownMinutes,
         countdownSeconds,
@@ -87,7 +88,7 @@ function updateClock() {
     } = getMarketSession();
 
     const timeString = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const nextSessionString = `Asia Session opens in ${countdownHours}h ${countdownMinutes}m ${countdownSeconds}s`;
+    const nextSessionString = `${nextSession} opens in ${countdownHours}h ${countdownMinutes}m ${countdownSeconds}s`;
 
     // Update DOM elements
     document.getElementById("date").textContent = formattedDate;
